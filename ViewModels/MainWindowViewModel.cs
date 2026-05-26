@@ -371,7 +371,7 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             UpdateStatusMessage = "Checking for updates...";
             // PLACEHOLDER: Replace with your actual GitHub repo URL when ready!
-            var mgr = new UpdateManager("https://github.com/USERNAME/YTDownloaderApp");
+            var mgr = new UpdateManager("https://github.com/gooxapps/YTDownloaderApp");
             
             if (!mgr.IsInstalled)
             {
@@ -404,7 +404,7 @@ public partial class MainWindowViewModel : ViewModelBase
         try
         {
             UpdateStatusMessage = "Downloading update...";
-            var mgr = new UpdateManager("https://github.com/USERNAME/YTDownloaderApp");
+            var mgr = new UpdateManager("https://github.com/gooxapps/YTDownloaderApp");
             await mgr.DownloadUpdatesAsync(_updateInfo, progress => 
             {
                 UpdateStatusMessage = $"Downloading... {progress}%";
