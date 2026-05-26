@@ -1,0 +1,53 @@
+name: Release
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release Version (e.g. 1.0.1)'
+        required: true
+        default: '1.0.1'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            rid: win-x64
+            channel: win
+            exe: YTDownloaderApp.exe
+          - os: macos-latest
+            rid: osx-x64
+            channel: osx
+            exe: YTDownloaderApp
+          - os: ubuntu-latest
+            rid: linux-x64
+            channel: linux
+            exe: YTDownloaderApp
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+          
+      - name: Install Velopack
+        run: dotnet tool install -g vpk
+        
+      - name: Publish
+        run: dotnet publish YTDownloaderApp.csproj -c Release -r ${{ matrix.rid }} -p:PublishSingleFile=true
+        
+      - name: Pack
+        run: vpk pack -u YTDownloaderApp -v ${{ github.event.inputs.version }} -p bin/Release/net10.0/${{ matrix.rid }}/publish -c ${{ matrix.channel }} -e ${{ matrix.exe }}
+        
+      - name: Upload to Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ github.event.inputs.version }}
+          files: Releases/*
+          token: ${{ secrets.GITHUB_TOKEN }}
