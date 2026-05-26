@@ -1,0 +1,15 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="YTDownloaderApp.Views.SplashScreen"
+        Width="400" Height="300"
+        WindowStartupLocation="CenterScreen"
+        WindowDecorations="None"
+        Background="#1E1E1E">
+    <Grid RowDefinitions="*,Auto,*">
+        <StackPanel Grid.Row="1" HorizontalAlignment="Center" Spacing="20">
+            <TextBlock Text="YouTube Downloader" FontSize="26" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center"/>
+            <ProgressBar IsIndeterminate="True" Width="250" HorizontalAlignment="Center" Foreground="#007ACC"/>
+            <TextBlock Name="StatusText" Text="Initializing Components..." FontSize="14" Foreground="#AAAAAA" HorizontalAlignment="Center"/>
+        </StackPanel>
+    </Grid>
+</Window>

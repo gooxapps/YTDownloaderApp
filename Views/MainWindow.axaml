@@ -1,0 +1,207 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:YTDownloaderApp.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:asyncImageLoader="clr-namespace:AsyncImageLoader;assembly=AsyncImageLoader.Avalonia"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+        x:Class="YTDownloaderApp.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Icon="/Assets/avalonia-logo.ico"
+        Title="YouTube Downloader"
+        Width="900" Height="700"
+        WindowStartupLocation="CenterScreen"
+        Background="#1E1E1E">
+
+    <Design.DataContext>
+        <vm:MainWindowViewModel/>
+    </Design.DataContext>
+
+    <Grid RowDefinitions="Auto,Auto,*,Auto" Margin="20">
+        
+        <!-- Header & Input Area -->
+        <StackPanel Grid.Row="0" Spacing="15">
+            <Grid>
+                <TextBlock Text="YouTube Downloader" FontSize="28" FontWeight="Bold" Foreground="White" HorizontalAlignment="Left" />
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10">
+                    <TextBlock Text="{Binding UpdateStatusMessage}" VerticalAlignment="Center" Foreground="#AAAAAA" />
+                    <Button Content="Check Updates" Command="{Binding CheckForUpdatesCommand}" Background="#333333" Foreground="White" CornerRadius="4" Padding="10,5" IsVisible="{Binding !IsUpdateAvailable}"/>
+                    <Button Content="Install Update" Command="{Binding DownloadAndApplyUpdateCommand}" Background="#00AA00" Foreground="White" FontWeight="Bold" CornerRadius="4" Padding="10,5" IsVisible="{Binding IsUpdateAvailable}"/>
+                </StackPanel>
+            </Grid>
+            
+            <Grid ColumnDefinitions="*,Auto,Auto,Auto">
+                <TextBox Grid.Column="0" 
+                         Text="{Binding InputUrl}" 
+                         PlaceholderText="Search YouTube or Paste URL..." 
+                         FontSize="16" 
+                         Padding="10"
+                         VerticalContentAlignment="Center"
+                         CornerRadius="4"/>
+                
+                <ComboBox Grid.Column="1" 
+                          SelectedIndex="{Binding SelectedFormatIndex}" 
+                          Margin="10,0,0,0" 
+                          VerticalAlignment="Stretch"
+                          VerticalContentAlignment="Center"
+                          CornerRadius="4">
+                    <ComboBoxItem>Best Video (4K/Highest)</ComboBoxItem>
+                    <ComboBoxItem>Video 1080p</ComboBoxItem>
+                    <ComboBoxItem>Video 720p</ComboBoxItem>
+                    <ComboBoxItem>Video 480p</ComboBoxItem>
+                    <ComboBoxItem>Audio Only (MP3)</ComboBoxItem>
+                </ComboBox>
+
+                <Button Grid.Column="2" 
+                        Command="{Binding SearchCommand}" 
+                        Content="Search" 
+                        Margin="10,0,0,0" 
+                        Padding="20,10" 
+                        Background="#007ACC" 
+                        Foreground="White" 
+                        FontWeight="Bold" 
+                        CornerRadius="4"/>
+
+                <Button Grid.Column="3" 
+                        Command="{Binding AddDownloadCommand}" 
+                        Content="Direct DL" 
+                        Margin="10,0,0,0" 
+                        Padding="20,10" 
+                        Background="#FF0000" 
+                        Foreground="White" 
+                        FontWeight="Bold" 
+                        CornerRadius="4"
+                        ToolTip.Tip="Bypass search and download URL directly"/>
+            </Grid>
+        </StackPanel>
+
+        <!-- Options Area -->
+        <Grid Grid.Row="1" ColumnDefinitions="Auto,*,Auto,Auto,Auto" Margin="0,15,0,0">
+            <TextBlock Grid.Column="0" Text="Save to:" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="White" Margin="0,0,10,0"/>
+            <TextBox Grid.Column="1" Text="{Binding OutputFolderPath}" IsReadOnly="True" CornerRadius="4" VerticalContentAlignment="Center"/>
+            <Button Grid.Column="2" Command="{Binding BrowseFolderCommand}" CommandParameter="{Binding $parent[Window]}" Content="Browse..." Margin="10,0,0,0" CornerRadius="4" Background="#333333" Foreground="White"/>
+            
+            <StackPanel Grid.Column="3" Orientation="Horizontal" Margin="20,0,0,0">
+                <TextBlock Text="Trim:" VerticalAlignment="Center" Foreground="White" Margin="0,0,5,0"/>
+                <TextBox Text="{Binding StartTime}" PlaceholderText="00:00:00" Width="80" CornerRadius="4" ToolTip.Tip="Start Time"/>
+                <TextBlock Text="-" VerticalAlignment="Center" Foreground="White" Margin="5,0,5,0"/>
+                <TextBox Text="{Binding EndTime}" PlaceholderText="00:00:00" Width="80" CornerRadius="4" ToolTip.Tip="End Time"/>
+            </StackPanel>
+
+            <CheckBox Grid.Column="4" Content="Embed Subtitles" IsChecked="{Binding EmbedSubtitles}" Foreground="White" FontWeight="SemiBold" Margin="20,0,0,0"/>
+        </Grid>
+
+        <!-- Tabs -->
+        <TabControl Grid.Row="2" Margin="0,20,0,0" SelectedIndex="{Binding SelectedTabIndex}">
+            <!-- Search Results Tab -->
+            <TabItem Header="Search Results" FontSize="16" FontWeight="SemiBold">
+                <Grid RowDefinitions="Auto,*">
+                    <!-- Download All Button -->
+                    <StackPanel Grid.Row="0" HorizontalAlignment="Right" Margin="0,10,0,10">
+                        <Button Command="{Binding DownloadAllSearchResultsCommand}" 
+                                Content="Download All (Max 50)" 
+                                Background="#00AA00" Foreground="White" FontWeight="Bold" CornerRadius="4" Padding="15,10"
+                                IsVisible="{Binding !IsSearching}"/>
+                    </StackPanel>
+
+                    <ProgressBar Grid.Row="1" IsIndeterminate="True" IsVisible="{Binding IsSearching}" HorizontalAlignment="Center" VerticalAlignment="Center" Width="200"/>
+                    <ScrollViewer Grid.Row="1" IsVisible="{Binding !IsSearching}">
+                        <ItemsControl ItemsSource="{Binding SearchResults}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Background="#2D2D30" CornerRadius="8" Padding="10" Margin="0,0,0,10" BoxShadow="0 4 8 0 #00000033">
+                                        <Grid ColumnDefinitions="160,*,Auto">
+                                            
+                                            <!-- Thumbnail -->
+                                            <Border Grid.Column="0" Width="150" Height="84" HorizontalAlignment="Left" CornerRadius="4" ClipToBounds="True">
+                                                <Image asyncImageLoader:ImageLoader.Source="{Binding ThumbnailUrl}" Stretch="UniformToFill"/>
+                                            </Border>
+                                            
+                                            <!-- Video Info -->
+                                            <StackPanel Grid.Column="1" Margin="15,0,0,0" VerticalAlignment="Center" Spacing="5">
+                                                <TextBlock Text="{Binding Title}" FontWeight="Bold" FontSize="16" Foreground="White" TextWrapping="Wrap"/>
+                                                <TextBlock Text="{Binding Author}" Foreground="#AAAAAA" FontSize="14"/>
+                                                <TextBlock Text="{Binding Duration}" Foreground="#888888" FontSize="12"/>
+                                            </StackPanel>
+
+                                            <!-- Download Button -->
+                                            <Button Grid.Column="2" x:CompileBindings="False"
+                                                    Command="{Binding $parent[Window].DataContext.DownloadSearchResultCommand}" 
+                                                    CommandParameter="{Binding}"
+                                                    Content="Download" 
+                                                    VerticalAlignment="Center"
+                                                    Padding="15,10"
+                                                    Background="#00AA00" Foreground="White" FontWeight="Bold" CornerRadius="4"/>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Grid>
+            </TabItem>
+
+            <!-- Active Downloads Tab -->
+            <TabItem Header="Downloads" FontSize="16" FontWeight="SemiBold">
+                <ScrollViewer Margin="0,10,0,0">
+                    <ItemsControl ItemsSource="{Binding Downloads}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="#2D2D30" CornerRadius="8" Padding="15" Margin="0,0,0,10" BoxShadow="0 4 8 0 #00000033">
+                                    <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto">
+                                        
+                                        <!-- Title -->
+                                        <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding Title}" FontWeight="SemiBold" FontSize="16" Foreground="White" TextTrimming="CharacterEllipsis"/>
+                                        
+                                        <!-- Status & Speed -->
+                                        <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10">
+                                            <TextBlock Text="{Binding DownloadSpeed}" Foreground="#00FF00" />
+                                            <TextBlock Text="{Binding Status}" Foreground="#AAAAAA" />
+                                        </StackPanel>
+
+                                        <!-- Progress Bar -->
+                                        <ProgressBar Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" 
+                                                     Value="{Binding ProgressPercentage}" 
+                                                     Minimum="0" Maximum="100" 
+                                                     Height="10" Margin="0,10,0,10"
+                                                     Foreground="#FF0000" />
+
+                                        <!-- Action Buttons -->
+                                        <StackPanel Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10">
+                                            <!-- Pause Button -->
+                                            <Button x:CompileBindings="False" Command="{Binding $parent[Window].DataContext.PauseDownloadCommand}" 
+                                                    CommandParameter="{Binding}"
+                                                    Content="Pause" 
+                                                    IsVisible="{Binding CanPause}" 
+                                                    Background="#333333" Foreground="White"/>
+                                            
+                                            <!-- Resume Button -->
+                                            <Button x:CompileBindings="False" Command="{Binding $parent[Window].DataContext.ResumeDownloadCommand}" 
+                                                    CommandParameter="{Binding}"
+                                                    Content="Resume" 
+                                                    IsVisible="{Binding CanResume}"
+                                                    Background="#007ACC" Foreground="White"/>
+                                            
+                                            <!-- Cancel Button -->
+                                            <Button x:CompileBindings="False" Command="{Binding $parent[Window].DataContext.CancelDownloadCommand}" 
+                                                    CommandParameter="{Binding}"
+                                                    Content="Cancel/Remove" 
+                                                    IsVisible="{Binding CanCancel}"
+                                                    Background="#880000" Foreground="White"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </TabItem>
+        </TabControl>
+
+        <!-- Status Footer -->
+        <Border Grid.Row="3" Background="#007ACC" CornerRadius="4" Padding="10">
+            <TextBlock Text="{Binding StatusMessage}" Foreground="White" FontWeight="Bold"/>
+        </Border>
+
+    </Grid>
+</Window>

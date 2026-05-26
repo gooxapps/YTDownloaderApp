@@ -1,0 +1,8 @@
+bin/
+obj/
+ffmpeg
+yt-dlp_macos
+.DS_Store
+*.user
+*.suo
+Releases/
