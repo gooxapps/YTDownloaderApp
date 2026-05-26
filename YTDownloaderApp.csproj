@@ -25,6 +25,6 @@
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.1" />
     <PackageReference Include="YoutubeDLSharp" Version="1.2.0" />
     <PackageReference Include="YoutubeExplode" Version="6.6.0" />
-    <PackageReference Include="Velopack" Version="3.*" />
+    <PackageReference Include="Velopack" Version="1.0.1" />
   </ItemGroup>
 </Project>
